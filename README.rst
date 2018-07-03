@@ -1,4 +1,9 @@
-# maestro.py
+maestro.py
+==========
+
+Introduction
+------------
+
 Semi- to full-automation. The realistic approach for SMBs.
 
 'Pet' vs. 'herd'? This is the 'stable' approach!
@@ -22,7 +27,8 @@ tools. It must be flexible enough to be split up as needed
 and simple enough such that one can work on several projects
 without having to think too much.
 
---
+History
+-------
 
 This project was started as a
 proof-of-concept / first-do-it-approach here and was
