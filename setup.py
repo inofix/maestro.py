@@ -1,5 +1,14 @@
-"""
-TODO: include with PyPI
-"""
+from setuptools import setup
 
-    version='0.1.dev2+g1c6fb7a',
+setup(
+    name='maestro',
+    version='0.1',
+    py_modules=['maestro'],
+    install_requires=[
+        'Click',
+    ],
+    entry_points='''
+        [console_scripts]
+        maestro=main:help
+    ''',
+)
