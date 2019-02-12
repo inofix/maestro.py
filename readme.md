@@ -50,3 +50,7 @@ pip install --editable .
 ```
 
 Afterwards, the command should be available as `maestro`
+
+Note: the `pip install --editable` command, is suffixed with a `.`
+(dot); the `venv/bin/activate`, prefixed with a `.`; it represents the
+current directory in unix systems.

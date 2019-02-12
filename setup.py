@@ -9,6 +9,6 @@ setup(
     ],
     entry_points='''
         [console_scripts]
-        maestro=main:help
+        maestro=main:main
     ''',
 )
