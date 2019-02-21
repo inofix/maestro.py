@@ -1,3 +1,11 @@
 venv/
 __pycache__/
 maestro.egg-info/
+
+# maestro folders
+anyconfix
+common-inv
+common-playbooks
+
+# maestro files
+.maestro.py
