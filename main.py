@@ -20,45 +20,6 @@ with open('.maestro.py') as f:
         ('.py', 'rb', imp.PY_SOURCE)
     ).__dict__)
 
-#
-# variables
-#
-
-# the merge of the above inventories will be stored here
-inventorydir = './.inventory'
-
-# some "sane" ansible default values
-ansible_managed='Ansible managed. All local changes will be lost!'
-ansible_timeout='60'
-ansible_scp_if_ssh='True'
-ansible_galaxy_roles='.ansible-galaxy-roles'
-
-# file name of the galaxy role definition (relative to the playbookdirs)
-galaxyroles="galaxy/roles.yml"
-
-RECLASS_CONFIG_INITIAL = '''
-storage_type: yaml_fs
-inventory_base_uri: {}
-'''.format(inventorydir)
-
-ANSIBLE_CONFIG_INITIAL = '''
-[defaults]
-hostfile    = {inventorydir}/hosts
-timeout     = {ansible_timeout}
-ansible_managed = "{ansible_managed}"
-roles_path  = {maestrodir}/{ansible_galaxy_roles}
-#allow_world_readable_tmpfiles = true
-
-[ssh_connection]
-#scp_if_ssh = {ansible_scp_if_ssh}
-'''.format(
-    inventorydir=inventorydir,
-    ansible_timeout=ansible_timeout,
-    ansible_managed=ansible_managed,
-    maestrodir='.',
-    ansible_galaxy_roles=ansible_galaxy_roles,
-    ansible_scp_if_ssh=ansible_scp_if_ssh
-)
 
 #
 # CLI commands
@@ -117,11 +78,11 @@ def do_init():
 
 def copy_directories_and_yaml(frm, subdir):
     for (f, _, filenames) in os.walk('{}/{}'.format(frm, subdir)):
-        os.makedirs(f.replace(frm, inventorydir), exist_ok=True)
+        os.makedirs(f.replace(frm, settings.INVENTORYDIR), exist_ok=True)
         for fname in filenames:
             if fname.endswith('.yml'):
                 path = '{}/{}'.format(f, fname)
-                os.symlink(path, path.replace(frm, inventorydir))
+                os.symlink(path, path.replace(frm, settings.INVENTORYDIR))
 
 def do_reinit():
     print('Re-create the inventory. Note: there will be warnings for')
@@ -129,7 +90,7 @@ def do_reinit():
     to_reinit = ['nodes', 'classes']
 
     for _dir in to_reinit:
-        to_refresh = '{}/{}'.format(inventorydir, _dir)
+        to_refresh = '{}/{}'.format(settings.INVENTORYDIR, _dir)
         shutil.rmtree(to_refresh, ignore_errors=True)
         os.makedirs(to_refresh)
 
@@ -139,26 +100,26 @@ def do_reinit():
 
     print('Re-connect ansible to our reclass inventory')
 
-    if os.path.isfile('{}/hosts'.format(inventorydir)):
-        os.remove('{}/hosts'.format(inventorydir))
-    if os.path.isfile('{}/reclass-config.yml'.format(inventorydir)):
-        os.remove('{}/reclass-config.yml'.format(inventorydir))
+    if os.path.isfile('{}/hosts'.format(settings.INVENTORYDIR)):
+        os.remove('{}/hosts'.format(settings.INVENTORYDIR))
+    if os.path.isfile('{}/reclass-config.yml'.format(settings.INVENTORYDIR)):
+        os.remove('{}/reclass-config.yml'.format(settings.INVENTORYDIR))
 
-    if not os.path.isfile(settings.ansible_connect):
-        error('reclass is not installed (looked in {})'.format(settings.ansible_connect))
-    os.symlink(settings.ansible_connect, '{}/hosts'.format(inventorydir))
+    if not os.path.isfile(settings.ANSIBLE_CONNECT):
+        error('reclass is not installed (looked in {})'.format(settings.ANSIBLE_CONNECT))
+    os.symlink(settings.ANSIBLE_CONNECT, '{}/hosts'.format(settings.INVENTORYDIR))
     # TODO: checkout $_pre
     if True:
-        with open('{}/reclass-config.yml'.format(inventorydir), 'w+') as f:
-            f.write(RECLASS_CONFIG_INITIAL)
+        with open('{}/reclass-config.yml'.format(settings.INVENTORYDIR), 'w+') as f:
+            f.write(settings.RECLASS_CONFIG_INITIAL)
 
-        with open('{}/ansible.cfg'.format(inventorydir), 'w+') as f:
-            f.write(ANSIBLE_CONFIG_INITIAL)
+        with open('{}/ansible.cfg'.format(settings.INVENTORYDIR), 'w+') as f:
+            f.write(settings.ANSIBLE_CONFIG_INITIAL)
     # TODO: check how/why to assign $ANSIBLE_CONFIG
 
     print('Installing all necessary ansible-galaxy roles')
     for _dir in settings.playbookdirs.values():
-        f = '{}/{}'.format(_dir, galaxyroles)
+        f = '{}/{}'.format(_dir, settings.GALAXYROLES)
         if not os.path.isfile(f):
             continue
         print('Found {}'.format(f))
@@ -169,7 +130,7 @@ def do_reinit():
             print(' .. but it was empty, ignoring..')
             continue
             
-        if subprocess.call([settings.ansible_galaxy, 'install', '-r', f]):
+        if subprocess.call([settings.ANSIBLE_GALAXY, 'install', '-r', f]):
             error(
                 "ansible-galaxy failed to perform the" \
                 "installation. Please make sure all the" \

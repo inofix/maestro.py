@@ -1,3 +1,4 @@
+# python & pip
 venv/
 __pycache__/
 maestro.egg-info/

@@ -1,5 +1,9 @@
 # this configures maestro.py
 
+# arch linux ansible install overwrite
+# ANSIBLE_CONNECT = '/usr/bin/reclass-ansible'
+# ANSIBLE_GALAXY = '/usr/bin/ansible-galaxy'
+
 # git repos used (use the same name as in the dir arrays below)
 toclone = {
     'common_inv': 'git@github.com:inofix/common-inv.git',
