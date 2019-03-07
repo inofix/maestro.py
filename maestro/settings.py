@@ -37,3 +37,9 @@ roles_path  = {maestrodir}/{ansible_galaxy_roles}
     ansible_galaxy_roles=ANSIBLE_GALAXY_ROLES,
     ansible_scp_if_ssh=ANSIBLE_SCP_IF_SSH
 )
+
+# Unsetting this helper variables (sane defaults)
+PRE = ''
+CLASSFILTER = ''
+NODEFILTER = ''
+PROJECTFILTER = ''

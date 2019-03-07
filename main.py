@@ -40,6 +40,14 @@ def reinit():
     initialize_workdir()
     do_reinit()
 
+@main.command()
+def list():
+    get_nodes()
+
+@main.command()
+def reclass():
+    print_plain_reclass()
+
 #
 # Functions
 #
@@ -72,21 +80,12 @@ def do_init():
             git = Repo(git_dest).git
             git.pull()
         else:
+            print('clone repository {}'.format(git_dest))
             os.makedirs(git_dest, exist_ok=True)
             Repo.clone_from(repository_remote, git_dest)
-    do_reinit()
-
-def copy_directories_and_yaml(frm, subdir):
-    for (f, _, filenames) in os.walk('{}/{}'.format(frm, subdir)):
-        os.makedirs(f.replace(frm, settings.INVENTORYDIR), exist_ok=True)
-        for fname in filenames:
-            if fname.endswith('.yml'):
-                path = '{}/{}'.format(f, fname)
-                os.symlink(path, path.replace(frm, settings.INVENTORYDIR))
 
 def do_reinit():
-    print('Re-create the inventory. Note: there will be warnings for')
-    print('duplicates, etc.')
+    print('Re-create the inventory. Note: there will be warnings for duplicates, etc.')
     to_reinit = ['nodes', 'classes']
 
     for _dir in to_reinit:
@@ -108,13 +107,16 @@ def do_reinit():
     if not os.path.isfile(settings.ANSIBLE_CONNECT):
         error('reclass is not installed (looked in {})'.format(settings.ANSIBLE_CONNECT))
     os.symlink(settings.ANSIBLE_CONNECT, '{}/hosts'.format(settings.INVENTORYDIR))
+
     # TODO: checkout $_pre
     if True:
         with open('{}/reclass-config.yml'.format(settings.INVENTORYDIR), 'w+') as f:
             f.write(settings.RECLASS_CONFIG_INITIAL)
+            print('Installed reclass config')
 
         with open('{}/ansible.cfg'.format(settings.INVENTORYDIR), 'w+') as f:
             f.write(settings.ANSIBLE_CONFIG_INITIAL)
+            print('Installed ansible config')
     # TODO: check how/why to assign $ANSIBLE_CONFIG
 
     print('Installing all necessary ansible-galaxy roles')
@@ -143,3 +145,66 @@ def do_reinit():
 
 def initialize_workdir():
     pathlib.Path(settings.WORKDIR).mkdir(parents=True, exist_ok=True)
+
+def copy_directories_and_yaml(frm, subdir):
+    for (f, _, filenames) in os.walk('{}/{}'.format(frm, subdir)):
+        os.makedirs(f.replace(frm, settings.INVENTORYDIR), exist_ok=True)
+        for fname in filenames:
+            if fname.endswith('.yml'):
+                path = '{}/{}'.format(f, fname)
+                os.symlink(path, path.replace(frm, settings.INVENTORYDIR))
+
+# First call to reclass to get an overview of the hosts available
+def get_nodes():
+    nodes_path = '{}/nodes'.format(settings.INVENTORYDIR)
+    if not os.path.isdir(nodes_path):
+        error('reclass environment not found at {}'.format(nodes_path))
+
+    reclass_filter = ''
+    if len(settings.PROJECTFILTER):
+        if os.path.isdir('{}/{}'.format(nodes_path, settings.PROJECTFILTER)):
+            reclass_filter = '-u nodes/{}'.format(settings.PROJECTFILTER)
+        else:
+            error('This project does not exist in {}'.format(settings.INVENTORYDIR))
+
+    reclass_result = subprocess.run(
+        ['reclass', '-b', settings.INVENTORYDIR, '-i'],
+        capture_output=True
+    )
+    print('reclass_result', reclass_result)
+    # TODO
+
+def print_plain_reclass():
+    print('plain reclass')
+    dirStructure = os.walk('{}/nodes/'.format(settings.INVENTORYDIR))
+    # TODO: remove True, and add CLI setting for filters
+    if True or len(settings.NODEFILTER):
+        for (dirpath, dirnames, filenames) in dirStructure:
+            print(dirpath, dirnames, filenames)
+        # TODO: assign nodefilter variable with reclass
+        pass
+    else:
+        reclassmode = '-i'
+    
+    if len(settings.NODEFILTER):
+        nodes_uri = '{}/nodes/'.format()
+
+    if len(settings.PROJECTFILTER):
+        nodes_uri = '{}/nodes/{}'.format(settings.INVENTORYDIR, settings.PROJECTFILTER)
+        if not os.path.isdir(nodes_uri):
+            error('No such project dir: {}'.format(nodes_uri))
+    elif len(settings.CLASSFILTER):
+        error("Classes are not supported here, use project filter instead") 
+
+    if len(nodes_uri):
+        reclass_result = subprocess.run(
+            ['reclass', '-b', '-u', modes_uri, reclassmode],
+            capture_output=True
+        )
+        print('reclass_result', reclass_result)
+    else:
+        reclass_result = subprocess.run(
+            ['reclass', '-b', modes_uri, reclassmode],
+            capture_output=True
+        )
+        print('reclass_result', reclass_result)
