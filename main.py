@@ -1,3 +1,4 @@
+import imp
 import os
 import pathlib
 import re
@@ -5,11 +6,12 @@ import shutil
 import subprocess
 import sys
 
-import click
 from git.repo.base import Repo
+import click
+import yaml
 
 from maestro import settings
-import imp
+
 
 # source the local python config file
 with open('.maestro.py') as f:
@@ -42,7 +44,8 @@ def reinit():
 
 @main.command()
 def list():
-    get_nodes()
+    nodes = get_nodes()
+    process_nodes(list_node, nodes)
 
 @main.command()
 def reclass():
@@ -114,7 +117,7 @@ def do_reinit():
             f.write(settings.RECLASS_CONFIG_INITIAL)
             print('Installed reclass config')
 
-        with open('{}/ansible.cfg'.format(settings.INVENTORYDIR), 'w+') as f:
+        with open('./ansible.cfg', 'w+') as f:
             f.write(settings.ANSIBLE_CONFIG_INITIAL)
             print('Installed ansible config')
     # TODO: check how/why to assign $ANSIBLE_CONFIG
@@ -147,11 +150,12 @@ def initialize_workdir():
     pathlib.Path(settings.WORKDIR).mkdir(parents=True, exist_ok=True)
 
 def copy_directories_and_yaml(frm, subdir):
-    for (f, _, filenames) in os.walk('{}/{}'.format(frm, subdir)):
-        os.makedirs(f.replace(frm, settings.INVENTORYDIR), exist_ok=True)
+    frm = os.path.abspath(frm)
+    for (dirpath, _, filenames) in os.walk('{}/{}'.format(frm, subdir)):
+        os.makedirs(dirpath.replace(frm, settings.INVENTORYDIR), exist_ok=True)
         for fname in filenames:
             if fname.endswith('.yml'):
-                path = '{}/{}'.format(f, fname)
+                path = '{}/{}'.format(dirpath, fname)
                 os.symlink(path, path.replace(frm, settings.INVENTORYDIR))
 
 # First call to reclass to get an overview of the hosts available
@@ -166,17 +170,27 @@ def get_nodes():
             reclass_filter = '-u nodes/{}'.format(settings.PROJECTFILTER)
         else:
             error('This project does not exist in {}'.format(settings.INVENTORYDIR))
+    reclass_result = subprocess.run(['reclass', '-b', settings.INVENTORYDIR, '-i'], capture_output=True)
+    yamlresult = yaml.load(reclass_result.stdout)
 
-    reclass_result = subprocess.run(
-        ['reclass', '-b', settings.INVENTORYDIR, '-i'],
-        capture_output=True
-    )
-    print('reclass_result', reclass_result)
-    # TODO
+    # TODO: process_nodes process_classes etc.
+    return yamlresult['nodes']
+
+def list_node(name, properties):
+    project = properties['__reclass__']['node'].split('/')[0]
+    output = '{} ({}:{}) {} ({}-{} {})'.format(name, properties.get('environment'), project, properties['parameters'].get('role'), properties['parameters'].get('os__distro'), properties['parameters'].get('os__codename'), properties['parameters'].get('os__release'))
+    print(output)
+
+def process_nodes(command, nodes):
+    for key, value in sorted(nodes.items(), reverse=True):
+        command(key, value)
+
+
 
 def print_plain_reclass():
     print('plain reclass')
     dirStructure = os.walk('{}/nodes/'.format(settings.INVENTORYDIR))
+    filterednodes = []
     # TODO: remove True, and add CLI setting for filters
     if True or len(settings.NODEFILTER):
         for (dirpath, dirnames, filenames) in dirStructure:
@@ -196,7 +210,7 @@ def print_plain_reclass():
     elif len(settings.CLASSFILTER):
         error("Classes are not supported here, use project filter instead") 
 
-    if len(nodes_uri):
+    if len(nodes_uris):
         reclass_result = subprocess.run(
             ['reclass', '-b', '-u', modes_uri, reclassmode],
             capture_output=True
@@ -208,3 +222,8 @@ def print_plain_reclass():
             capture_output=True
         )
         print('reclass_result', reclass_result)
+
+# def print_warning(param):
+#     if verbose > 1:
+#         click.secho('Warning', fg='yellow')
+#         print('Warning')
