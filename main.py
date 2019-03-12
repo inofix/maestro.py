@@ -48,17 +48,19 @@ def list():
     process_nodes(list_node, nodes)
 
 @main.command()
-def reclass():
-    print_plain_reclass()
+@click.option('-n', '--node', 'nodeFilter', help='filter by node')
+@click.option('-p', '--project', 'projectFilter', help='filter by project')
+@click.option('-c', '--class', 'classFilter', help='filter by class')
+def reclass(nodeFilter, classFilter, projectFilter):
+    print_plain_reclass(nodeFilter, classFilter, projectFilter)
 
 #
 # Functions
 #
 def print_usage():
-    print('usage: {} [option] action'.format(sys.argv[0]))
+    print('Usage: {} [option] action'.format(sys.argv[0]))
 
 def error(*args):
-    print_usage()
     print('Error: {}'.format(''.join(str(x) for x in args)))
     sys.exit(1)
 
@@ -185,40 +187,43 @@ def process_nodes(command, nodes):
     for key, value in sorted(nodes.items(), reverse=True):
         command(key, value)
 
-
-
-def print_plain_reclass():
-    print('plain reclass')
-    dirStructure = os.walk('{}/nodes/'.format(settings.INVENTORYDIR))
+def print_plain_reclass(nodeFilter, classFilter, projectFilter):
+    dirStructure = os.walk('{}/nodes/'.format(settings.INVENTORYDIR), followlinks=True)
+    nodes_uri = ''
+    reclassmode = ''
     filterednodes = []
-    # TODO: remove True, and add CLI setting for filters
-    if True or len(settings.NODEFILTER):
+
+    if nodeFilter is not None:
         for (dirpath, dirnames, filenames) in dirStructure:
-            print(dirpath, dirnames, filenames)
-        # TODO: assign nodefilter variable with reclass
-        pass
+            for filename in filenames:
+                node = os.path.basename(filename).replace('.yml', '')
+                if nodeFilter in node:
+                    reclassmode = node
+                pass
+        if len(reclassmode):
+            reclassmode = '-n {}'.format(reclassmode)
+        else:
+            error('The node does not seem to exists: {}'.format(nodeFilter))
     else:
         reclassmode = '-i'
-    
-    if len(settings.NODEFILTER):
-        nodes_uri = '{}/nodes/'.format()
 
-    if len(settings.PROJECTFILTER):
-        nodes_uri = '{}/nodes/{}'.format(settings.INVENTORYDIR, settings.PROJECTFILTER)
+    if projectFilter is not None:
+        import pdb; pdb.set_trace()
+        nodes_uri = '{}/nodes/{}'.format(settings.INVENTORYDIR, projectFilter)
         if not os.path.isdir(nodes_uri):
             error('No such project dir: {}'.format(nodes_uri))
-    elif len(settings.CLASSFILTER):
+    elif classFilter is not None:
         error("Classes are not supported here, use project filter instead") 
 
-    if len(nodes_uris):
+    if len(nodes_uri):
         reclass_result = subprocess.run(
-            ['reclass', '-b', '-u', modes_uri, reclassmode],
+            ['reclass', '-b', settings.INVENTORYDIR, '-u', nodes_uri, reclassmode],
             capture_output=True
         )
         print('reclass_result', reclass_result)
     else:
         reclass_result = subprocess.run(
-            ['reclass', '-b', modes_uri, reclassmode],
+            ['reclass', '-b', settings.INVENTORYDIR, nodes_uri, reclassmode],
             capture_output=True
         )
         print('reclass_result', reclass_result)
