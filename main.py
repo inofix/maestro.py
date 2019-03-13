@@ -48,6 +48,11 @@ def list():
     process_nodes(list_node, nodes)
 
 @main.command()
+def shortlist():
+    nodes = get_nodes()
+    process_nodes(list_node_short, nodes)
+
+@main.command()
 @click.option('-n', '--node', 'nodeFilter', help='filter by node')
 @click.option('-p', '--project', 'projectFilter', help='filter by project')
 @click.option('-c', '--class', 'classFilter', help='filter by class')
@@ -182,6 +187,9 @@ def list_node(name, properties):
     project = properties['__reclass__']['node'].split('/')[0]
     output = '{} ({}:{}) {} ({}-{} {})'.format(name, properties.get('environment'), project, properties['parameters'].get('role'), properties['parameters'].get('os__distro'), properties['parameters'].get('os__codename'), properties['parameters'].get('os__release'))
     print(output)
+
+def list_node_short(name, _):
+    print(name)
 
 def process_nodes(command, nodes):
     for key, value in sorted(nodes.items(), reverse=True):
