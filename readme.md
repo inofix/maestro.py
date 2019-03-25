@@ -2,7 +2,7 @@
 
 # Development
 
-The entry point of the applicationis `./main.py`
+The entry point of the application is `./main.py`
 
 ## Dependencies management, with `pip`
 
@@ -15,12 +15,17 @@ We install them through `pip`, python's package manager.
 Source: https://click.palletsprojects.com/en/7.x/quickstart/
 
 We install `virtualenv`. It enables multiple side-by-side
-installations of Python and librairies, one for each project. It
+installations of Python and libraries (resp. the versions),
+one for each project. It
 doesn’t actually install separate copies of Python, but it does
 provide a clever way to keep different project environments
 isolated.
 
 `sudo pip install virtualenv`
+
+The following command sets the virtual environment up.
+
+`virtualenv venv`
 
 Now, whenever we want to work on a project, we only have to activate the corresponding environment
 
@@ -42,8 +47,8 @@ version to `virtualenv` with e.g. `--python=python3.5`..
 > shebangs.
 Source: https://click.palletsprojects.com/en/7.x/setuptools/#setuptools-integration
 
+The setup of the application is declared in `./setup.py`.
 
-In `./setup.py` is written the setup for the application.
 
 ## Test the script
 
@@ -55,8 +60,11 @@ virtualenv venv
 pip install --editable .
 ```
 
-Afterwards, the command should be available as `maestro`
+Afterwards, the command should be available as `maestro`.
 
-Note: the `pip install --editable` command, is suffixed with a `.`
-(dot); the `venv/bin/activate`, prefixed with a `.`; it represents the
-current directory in unix systems.
+(The `pip install --editable` command, is suffixed with a `.`
+(dot); it represents the current directory in unix systems. The
+`venv/bin/activate`, is prefixed with a `.` (dot); here the dot is
+equivalent to `source` and means to read in the commands from
+the file specified into the current shell.)
+
