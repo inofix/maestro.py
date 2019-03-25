@@ -6,7 +6,8 @@ The entry point of the applicationis `./main.py`
 
 ## Dependencies management, with `pip`
 
-Dependencies are listed in `./requirements.txt`.
+Dependencies are listed both in `./requirements.txt` and in
+`./setup.py`.
 We install them through `pip`, python's package manager.
 
 ## Environement management with `virtualenv`
