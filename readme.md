@@ -6,7 +6,8 @@ The entry point of the applicationis `./main.py`
 
 ## Dependencies management, with `pip`
 
-Dependencies are listed in `./requirements.txt`.
+Dependencies are listed both in `./requirements.txt` and in
+`./setup.py`.
 We install them through `pip`, python's package manager.
 
 ## Environement management with `virtualenv`
@@ -28,6 +29,11 @@ Now, whenever we want to work on a project, we only have to activate the corresp
 To stop working on the project:
 
 `deactivate`
+
+NOTE: As this requires python3, on older systems you will want to make
+sure to get the correct version installed. You might need, e.g. on debian,
+something like `pip3` instead of `pip` and you can provide the correct
+version to `virtualenv` with e.g. `--python=python3.5`..
 
 ## Modules, `setuptools` integration
 
