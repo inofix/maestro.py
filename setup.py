@@ -6,6 +6,8 @@ setup(
     py_modules=['maestro'],
     install_requires=[
         'Click',
+        'pyyaml',
+        'GitPython',
     ],
     entry_points='''
         [console_scripts]
