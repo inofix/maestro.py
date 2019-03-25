@@ -29,6 +29,11 @@ To stop working on the project:
 
 `deactivate`
 
+NOTE: As this requires python3, on older systems you will want to make
+sure to get the correct version installed. You might need, e.g. on debian,
+something like `pip3` instead of `pip` and you can provide the correct
+version to `virtualenv` with e.g. `--python=python3.5`..
+
 ## Modules, `setuptools` integration
 
 > When writing command line utilities, it’s recommended to write them
