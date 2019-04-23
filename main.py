@@ -14,20 +14,30 @@ from maestro import settings
 
 
 # source the local python config file
-with open('.maestro.py') as f:
-    settings.__dict__.update(imp.load_module(
-        'conf',
-        f,
-        '.maestro.py',
-        ('.py', 'rb', imp.PY_SOURCE)
-    ).__dict__)
+if os.path.isfile('.maestro.yml'):
+    with open('.maestro.yml') as f:
+        settings.__dict__.update(yaml.load(f, Loader=yaml.Loader))
+else:
+    click.secho('Warning: No .maestro.yml found!', fg='red')
 
 
 #
 # CLI commands
 #
 
-@click.group()
+class MaestroCatch(click.Group):
+    """This class will catch all errors and print them nicely"""
+    def invoke(self, ctx):
+        try:
+            return super().invoke(ctx)
+        except (KeyError, AttributeError) as exc:
+            click.secho('fatal: {} — did you provide a .maestro.yml file?'.format(exc), fg='red')
+        except Exception as exc:
+            click.secho('fatal: {}'.format(exc), fg='red')
+
+
+
+@click.group(cls=MaestroCatch)
 def main():
     pass
 
@@ -177,15 +187,35 @@ def get_nodes():
             reclass_filter = '-u nodes/{}'.format(settings.PROJECTFILTER)
         else:
             error('This project does not exist in {}'.format(settings.INVENTORYDIR))
-    reclass_result = subprocess.run(['reclass', '-b', settings.INVENTORYDIR, '-i'], capture_output=True)
-    yamlresult = yaml.load(reclass_result.stdout)
+    res = subprocess.check_output(['reclass', '-b', settings.INVENTORYDIR, '-i'])
+    yamlresult = yaml.load(res, Loader=yaml.Loader)
 
     # TODO: process_nodes process_classes etc.
     return yamlresult['nodes']
 
 def list_node(name, properties):
     project = properties['__reclass__']['node'].split('/')[0]
-    output = '{} ({}:{}) {} ({}-{} {})'.format(name, properties.get('environment'), project, properties['parameters'].get('role'), properties['parameters'].get('os__distro'), properties['parameters'].get('os__codename'), properties['parameters'].get('os__release'))
+    parameters = properties['parameters']
+    output = name
+    output += click.style(' ({}:{})'.format(properties.get('environment'),
+                                            project),
+                          fg='cyan')
+
+    role = properties['parameters'].get('role', '')
+    role_colors = {
+        'development': 'red',
+        'fallback': 'green',
+        'productive': 'yellow',
+    }
+    output += click.style(role, fg=role_colors.get(role, 'reset'))
+    codename = parameters.get('os__codename', '')
+    release = parameters.get('os__release', '')
+    output += click.style(' ({}{}{})'.format(
+        parameters.get('os__distro', ''),
+        '-' + codename if codename else '',
+        ' ' + release if release else ''),
+        fg='blue'
+    )
     print(output)
 
 def list_node_short(name, _):
@@ -223,16 +253,10 @@ def print_plain_reclass(nodeFilter, classFilter, projectFilter):
     elif classFilter is not None:
         error("Classes are not supported here, use project filter instead")
 
+    args = ['reclass', '-b', settings.INVENTORYDIR, nodes_uri, reclassmode]
     if len(nodes_uri):
-        reclass_result = subprocess.run(
-            ['reclass', '-b', settings.INVENTORYDIR, '-u', nodes_uri, reclassmode],
-            capture_output=True
-        )
-    else:
-        reclass_result = subprocess.run(
-            ['reclass', '-b', settings.INVENTORYDIR, nodes_uri, reclassmode],
-            capture_output=True
-        )
+        args = ['reclass', '-b', settings.INVENTORYDIR, '-u', nodes_uri, reclassmode]
+    res = subprocess.check_output(args)
     print('reclass_result', reclass_result)
 
 # def print_warning(param):

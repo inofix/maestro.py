@@ -1,0 +1,25 @@
+# this configures maestro.py
+
+ANSIBLE_CONNECT: /usr/bin/reclass-ansible
+ANSIBLE_GALAXY: /usr/bin/ansible-galaxy
+toclone:
+    common_inv: git@github.com:inofix/common-inv.git
+    common_playbooks: git@github.com:inofix/common-playbooks.git
+    me_myself_and_I: https://github.com/inofix/maestro.git
+    packer_templates: https://github.com/ganto/packer-qemu-templates.git
+    example_inv: git@github.com:inofix/example-inv.git
+
+# a local dir for (semi-)temporary data of the hosts (can savely be removed if necessary)
+workdir: './workdir'
+
+# the reclass sources will constitute the knowledge base for the meta data
+inventorydirs:
+    common_inv: ./common-inv
+    example_inv: ./example-inv
+# ansible/debops instructions
+playbookdirs:
+    common_playbooks: ./common-playbooks
+# further directories/repos that can be used
+localdirs:
+    me_myself_and_I: ./maestro
+    packer_templates: ./packer-qemu-templates
