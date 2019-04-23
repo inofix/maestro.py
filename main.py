@@ -135,22 +135,22 @@ def do_reinit():
         if not os.path.isfile(f):
             continue
         print('Found {}'.format(f))
-        
+
         with open(f) as fi:
             lines = fi.readlines()
         if not any(re.match(r'^- src:', line) for line in lines):
             print(' .. but it was empty, ignoring..')
             continue
-            
+
         if subprocess.call([settings.ANSIBLE_GALAXY, 'install', '-r', f]):
             error(
-                "ansible-galaxy failed to perform the" \
-                "installation. Please make sure all the" \
-                "roles do exist and that you have" \
-                "write access to the ansible 'roles_path'," \
-                "it can be controled in ansible.cfg in" \
+                "ansible-galaxy failed to perform the " \
+                "installation. Please make sure all the " \
+                "roles exist and that you have " \
+                "write access to the ansible 'roles_path', " \
+                "it can be controled in ansible.cfg in " \
                 "the [defaults] section."
-            )                    
+            )
         print('done')
 
 def initialize_workdir():
@@ -211,7 +211,7 @@ def print_plain_reclass(nodeFilter, classFilter, projectFilter):
         if len(reclassmode):
             reclassmode = '-n {}'.format(reclassmode)
         else:
-            error('The node does not seem to exists: {}'.format(nodeFilter))
+            error('The node does not seem to exist: {}'.format(nodeFilter))
     else:
         reclassmode = '-i'
 
@@ -221,20 +221,19 @@ def print_plain_reclass(nodeFilter, classFilter, projectFilter):
         if not os.path.isdir(nodes_uri):
             error('No such project dir: {}'.format(nodes_uri))
     elif classFilter is not None:
-        error("Classes are not supported here, use project filter instead") 
+        error("Classes are not supported here, use project filter instead")
 
     if len(nodes_uri):
         reclass_result = subprocess.run(
             ['reclass', '-b', settings.INVENTORYDIR, '-u', nodes_uri, reclassmode],
             capture_output=True
         )
-        print('reclass_result', reclass_result)
     else:
         reclass_result = subprocess.run(
             ['reclass', '-b', settings.INVENTORYDIR, nodes_uri, reclassmode],
             capture_output=True
         )
-        print('reclass_result', reclass_result)
+    print('reclass_result', reclass_result)
 
 # def print_warning(param):
 #     if verbose > 1:
